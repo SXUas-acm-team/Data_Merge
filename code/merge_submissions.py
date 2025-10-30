@@ -26,7 +26,7 @@ PATH_RESULT = os.path.join(SRC_DIR, 'result.csv')
 PATH_OJ = os.path.join(SRC_DIR, 'oj_sub.csv')
 
 # 目标表头
-RESULT_FIELDS = ['id', 'problem', 'school', 'username', 'realname', 'status', 'submit_time']
+RESULT_FIELDS = ['id', 'uid' ,'problem', 'school', 'username', 'realname', 'status', 'submit_time']
 
 
 def read_csv(path: str):
@@ -204,6 +204,7 @@ def merge_and_append():
 
             out = {
                 'id': sid,
+                'uid': uid,
                 'problem': prob_id,
                 'school': school,
                 'username': username,
