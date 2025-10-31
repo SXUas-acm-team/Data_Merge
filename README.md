@@ -1,4 +1,4 @@
-# Data_Merge
+# MergeResolver
 
 将牛客、HOJ等比赛数据合并为统一格式 `output/result.csv`，并一键生成 DOMjudge 事件流 `output/converted.ndjson`，可直接导入ICPC Resolver进行滚榜。
 
