@@ -8,6 +8,8 @@ from typing import Dict
 from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJ_ROOT = os.path.abspath(os.path.join(SCRIPT_DIR, '..'))
+OUTPUT_DIR = os.path.join(PROJ_ROOT, 'output')
 SRC_CANDIDATES = [
     os.path.join(SCRIPT_DIR, '..', 'src'),
     os.path.join(SCRIPT_DIR, 'src'),
@@ -22,8 +24,8 @@ else:
 PATH_NAME = os.path.join(SRC_DIR, 'n_name.csv')
 PATH_PROB = os.path.join(SRC_DIR, 'n_problem.csv')
 PATH_SUBM = os.path.join(SRC_DIR, 'n_sub.csv')
-PATH_RESULT = os.path.join(SRC_DIR, 'result.csv')
-PATH_OJ = os.path.join(SRC_DIR, 'oj_sub.csv')
+PATH_RESULT = os.path.join(OUTPUT_DIR, 'result.csv')
+PATH_OJ = os.path.join(SRC_DIR, 'hoj_sub.csv')
 
 # 目标表头
 RESULT_FIELDS = ['id', 'uid' ,'problem', 'school', 'username', 'realname', 'status', 'submit_time']
@@ -115,6 +117,8 @@ def load_existing_ids(path_result: str) -> set[str]:
 
 
 def ensure_result_header(path_result: str, overwrite: bool = False):
+    # 确保输出目录存在
+    os.makedirs(os.path.dirname(path_result), exist_ok=True)
     write_header = False
     if overwrite:
         write_header = True
@@ -171,6 +175,8 @@ def merge_and_append():
 
     appended = 0
     skipped_no_user = 0
+    # 确保输出目录存在
+    os.makedirs(os.path.dirname(PATH_RESULT), exist_ok=True)
     with open(PATH_RESULT, 'a', encoding='utf-8-sig', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=RESULT_FIELDS)
         for r in submissions:
@@ -230,6 +236,8 @@ def append_oj_sub():
 
     base_id = get_max_result_id(PATH_RESULT)
     appended = 0
+    # 确保输出目录存在
+    os.makedirs(os.path.dirname(PATH_RESULT), exist_ok=True)
     with open(PATH_RESULT, 'a', encoding='utf-8-sig', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=RESULT_FIELDS)
         for idx, r in enumerate(rows, start=1):
@@ -259,7 +267,7 @@ def append_oj_sub():
 if __name__ == '__main__':
     appended, total, skipped_no_user = merge_and_append()
     mode = 'overwrite' if os.environ.get('MERGE_OVERWRITE') == '1' else 'append'
-    print(f"Processed {total} submissions, mode={mode}, wrote {appended} rows to result.csv, skipped_no_user={skipped_no_user}")
+    print(f"Processed {total} submissions, mode={mode}, wrote {appended} rows to {PATH_RESULT}, skipped_no_user={skipped_no_user}")
 
     # 可选：追加 oj_sub.csv（通过环境变量 APPEND_OJ 控制）
     if os.environ.get('APPEND_OJ') == '1':
