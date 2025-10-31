@@ -2,14 +2,6 @@
 
 本项目用于将多来源的提交记录合并输出为统一结构的 `result.csv`。
 
-## 输入文件 目录/src
-
-- `n_name.csv`：牛客用户信息（包含 用户ID、昵称、真实名称、学校 等）
-- `n_problem.csv`：牛客题目映射表（`id,name`）
-- `n_sub.csv`：牛客提交记录（`提交id, 用户id, 题目名称, 提交状态, 提交时间, ...`）
-- `oj_sub.csv`（可选）：额外平台HOJ的提交记录（`display_id, status, submit_time, username, realname, ...`）
-
-
 ## 使用说明
 
 - 情况 A：仅合并 n_ 三表（n_sub + n_name + n_problem）
