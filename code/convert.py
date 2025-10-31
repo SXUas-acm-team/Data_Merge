@@ -119,7 +119,7 @@ except FileNotFoundError:
     # 没有 result.csv 时回退
     pass
 
-# 回退方案：从报名表 n_name.csv 读取（列索引 10）
+# 回退方案：从榜单表 n_name.csv 读取（列索引 10）
 if not school_info_set:
     with open(input_path("n_name.csv"), "r", encoding="utf-8-sig", newline='') as name_csv:
         reader = csv.reader(name_csv)
@@ -173,8 +173,8 @@ with open(input_path("n_name.csv"), "r", encoding="utf-8-sig", newline='') as na
         team_info_id[uid] = [school_name, team_name, tid]
         tid += 1
 
-# 兼容补充：为 result.csv 中未出现在报名表 n_name.csv 的选手（含 HOJ 导入、或 uid 为空）建队
-# - 对于有 uid 但未报名的，使用 result.csv 的 realname/username 建队
+# 兼容补充：为 result.csv 中未出现在榜单表 n_name.csv 的选手（含 HOJ 导入、或 uid 为空）建队
+# - 对于有 uid 但未榜单的，使用 result.csv 的 realname/username 建队
 # - 对于 uid 为空的（HOJ 行），使用 (school, realname, username) 组合生成稳定键
 team_info_fallback = {}
 def _fallback_key(school: str, realname: str, username: str) -> str:
@@ -265,7 +265,7 @@ with open(result_csv_path, "r", encoding="utf-8-sig", newline='') as result_csv:
             if fbk in team_info_fallback:
                 team_entry = team_info_fallback[fbk]
         if not team_entry:
-            # 未在报名名单中的提交，跳过
+            # 未在榜单名单中的提交，跳过
             continue
         submission_time_unformatted = row[7]
         # 将 result.csv 的状态规范化（避免 '1'/'0' 被当作 WA）

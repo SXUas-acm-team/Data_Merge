@@ -50,7 +50,7 @@ python3 code/cli.py all --overwrite --append-oj
 
 ## 放置输入文件（src/）
 
-- `n_name.csv`：牛客报名信息文档（含 用户ID/昵称/真实名称/学校）需要携带用户ID 请联系牛客平台管理员导出
+- `n_name.csv`：牛客榜单导出信息（含 用户ID/昵称/真实名称/学校）需要携带用户ID 请联系牛客平台管理员导出
 - `n_problem.csv`：题目映射（`id,name`） 将牛客题目名称映射成题号，由用户自行构建，可参考`src`目录下的模板进行构建
 - `n_sub.csv`：牛客提交记录（`提交id, 用户id, 题目名称, 提交状态, 提交时间, ...`）由竞赛管理员导出
 - `hoj_sub.csv`（可选）：外部 HOJ 记录 （`display_id, status, submit_time, username, realname, ...`）
@@ -61,6 +61,8 @@ python3 code/cli.py all --overwrite --append-oj
 ## 开发指南
 
 见本项目中的 [开发指南](https://github.com/SXUas-acm-team/MergeResolver/tree/main/code)。
+
+欢迎继续开发，支持更多类型的 OJ 统一滚榜操作～
 
 ## 服务器部署
 

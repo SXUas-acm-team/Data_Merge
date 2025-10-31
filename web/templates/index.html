@@ -6,6 +6,20 @@
     <title>ICPC Resolver滚榜文件在线生成</title>
     <link rel="stylesheet" href="/static/style.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+      <style>
+        .example-btn{
+          display:inline-block;
+          margin-left:8px;
+          padding:6px 10px;
+          border-radius:6px;
+          background:#007bff;
+          color:#fff;
+          text-decoration:none;
+          font-size:0.9rem;
+          box-shadow:0 1px 2px rgba(0,0,0,0.1);
+        }
+        .example-btn:hover{background:#0069d9}
+      </style>
   </head>
   <body>
     <header>
@@ -18,7 +32,7 @@
         <h2>需要准备的文件</h2>
         <ol>
           <li>n_problem.csv 题目信息对应第一列id(如A,B,C) 第二列题目名称</li>
-          <li>n_name.csv 牛客报名信息文档 需要携带用户ID 请联系牛客管理员</li>
+          <li>n_name.csv 牛客榜单导出信息 需要携带用户ID 请联系牛客管理员</li>
           <li>n_sub.csv 牛客比赛提交记录 需要携带用户ID 请联系牛客管理员</li>
           <li>hoj_sub.csv（可选，外部 HOJ 记录 请直接根据比赛id筛选数据库的contest_record表）</li>
         </ol>
@@ -57,25 +71,28 @@
             <div class="stack">
               <label class="label">上传文件</label>
               <input type="file" name="n_problem" accept=".csv" />
+              <a class="example-btn" href="https://github.com/SXUas-acm-team/MergeResolver/blob/main/src/n_problem.csv" target="_blank" rel="noopener">示例文件（n_problem.csv）</a>
             </div>
             <div class="divider"><span class="or">或</span></div>
             <div class="stack">
-              <label class="label">粘贴文本</label>
+              <label class="label">粘贴表格/文本</label>
               <textarea name="n_problem_text" placeholder="id,name &#10;A,题目一&#10;B,题目二&#10; "></textarea>
             </div>
           </div>
         </section>
 
         <section class="block">
-          <h3>n_name.csv 牛客报名信息文档～需要携带用户ID 请联系牛客管理员</h3>
+          <h3>n_name.csv 牛客榜单导出文档～需要携带用户ID 请联系牛客管理员</h3>
+          <p class="hint" style="color:#6c757d;margin-top:6px;margin-bottom:6px;">请自行将获取到的 .xls 格式另存为 .csv 方便导入</p>
           <div class="inputs">
             <div class="stack">
               <label class="label">上传文件</label>
               <input type="file" name="n_name" accept=".csv" />
+              <a class="example-btn" href="https://github.com/SXUas-acm-team/MergeResolver/blob/main/src/n_name.csv" target="_blank" rel="noopener">示例文件（n_name.csv）</a>
             </div>
             <div class="divider"><span class="or">或</span></div>
             <div class="stack">
-              <label class="label">粘贴文本</label>
+              <label class="label">粘贴表格/文本</label>
               <textarea name="n_name_text" placeholder=",uid,,,,,真实名称,,学校,..."></textarea>
             </div>
           </div>
@@ -83,14 +100,16 @@
 
         <section class="block">
           <h3>n_sub.csv 牛客比赛提交记录～需要携带用户ID 请联系牛客管理员</h3>
+          <p class="hint" style="color:#6c757d;margin-top:6px;margin-bottom:6px;">请自行将获取到的 .xls 格式另存为 .csv 方便导入</p>
           <div class="inputs">
             <div class="stack">
               <label class="label">上传文件</label>
               <input type="file" name="n_sub" accept=".csv" />
+              <a class="example-btn" href="https://github.com/SXUas-acm-team/MergeResolver/blob/main/src/n_sub.csv" target="_blank" rel="noopener">示例文件（n_sub.csv）</a>
             </div>
             <div class="divider"><span class="or">或</span></div>
             <div class="stack">
-              <label class="label">粘贴文本</label>
+              <label class="label">粘贴表格/文本</label>
               <textarea name="n_sub_text" placeholder="提交id,用户id,题目名称,提交状态,提交时间"></textarea>
             </div>
           </div>
@@ -98,14 +117,16 @@
 
         <section class="block">
           <h3>hoj_sub.csv（可选，外部 HOJ 记录 请直接根据比赛id筛选数据库的contest_record表）</h3>
+          <p class="hint" style="color:#6c757d;margin-top:6px;margin-bottom:6px;">请自行将获取到的 .xls 格式另存为 .csv 方便导入</p>
           <div class="inputs">
             <div class="stack">
               <label class="label">上传文件</label>
               <input type="file" name="hoj_sub" accept=".csv" />
+              <a class="example-btn" href="https://github.com/SXUas-acm-team/MergeResolver/blob/main/src/hoj_sub.csv" target="_blank" rel="noopener">示例文件（hoj_sub.csv）</a>
             </div>
             <div class="divider"><span class="or">或</span></div>
             <div class="stack">
-              <label class="label">粘贴文本</label>
+              <label class="label">粘贴表格/文本</label>
               <textarea name="hoj_sub_text" placeholder="display_id,status,submit_time(gmt_create),username,realname"></textarea>
             </div>
           </div>

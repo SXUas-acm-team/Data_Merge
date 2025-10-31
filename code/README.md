@@ -4,8 +4,8 @@
 
 `code/` 包含用于合并、转换比赛提交数据并生成 NDJSON 事件的脚本。常见工作流：
 
-- 先运行合并：把报名表与提交记录合并成统一的 `output/result.csv`（由 `merge_submissions.py` 负责）
-- 再运行转换：把 `result.csv`、报名表、题目表等转换为平台可消费的 `output/converted.ndjson`（由 `convert.py` 负责）
+- 先运行合并：把牛客榜单导出表与提交记录合并成统一的 `output/result.csv`（由 `merge_submissions.py` 负责）
+- 再运行转换：把 `result.csv`、榜单表、题目表等转换为平台可消费的 `output/converted.ndjson`（由 `convert.py` 负责）
 - `cli.py` 提供了统一的命令行入口（`all|merge|convert`）
 
 ### 文件清单与说明
@@ -30,21 +30,21 @@
     - `python3 code/cli.py all --overwrite --append-oj`
 
 - `convert.py`
-  - 作用：把报名表（`n_name.csv`）、题目表（`n_problem.csv`）以及合并生成的 `output/result.csv` 转换为比赛事件流 `output/converted.ndjson`。
+  - 作用：把榜单表（`n_name.csv`）、题目表（`n_problem.csv`）以及合并生成的 `output/result.csv` 转换为比赛事件流 `output/converted.ndjson`。
   - 读取路径策略：优先从项目根 `src/` 读取文件（例如 `src/n_name.csv`），若不存在则回退到 `code/` 目录下同名文件，以保证向后兼容。
   - 注意点：
     - 从 `contest-info.yaml` 读取比赛时间、显示配置等。
-    - 会自动构造学校集合、team/account 对应关系，并处理 `result.csv` 中没有报名信息的 fallback 场景（如 HOJ 导入）。
+    - 会自动构造学校集合、team/account 对应关系，并处理 `result.csv` 中没有榜单信息的 fallback 场景（如 HOJ 导入）。
     - 最终输出为 `output/converted.ndjson`。
 
 - `merge_submissions.py`
-  - 作用：从 `src/n_sub.csv`（提交表）与 `src/n_name.csv`（报名表）合并并写入 `output/result.csv`，并提供把外部 OJ 导出的 `hoj_sub.csv` 追加到结果表的功能。
+  - 作用：从 `src/n_sub.csv`（提交表）与 `src/n_name.csv`（榜单表）合并并写入 `output/result.csv`，并提供把外部 OJ 导出的 `hoj_sub.csv` 追加到结果表的功能。
   - 主要函数：
     - `merge_and_append()`：主入口，返回 (appended, total, skipped_no_user)
     - `append_oj_sub()`：把 `hoj_sub.csv` 的行追加到 `output/result.csv`
   - 行为要点：
     - 支持覆盖式重建（通过设置环境变量 `MERGE_OVERWRITE=1`）。
-    - 会跳过未在报名表中出现的提交（计入 skipped_no_user），并把编译错误（CE）排除在计罚之外。
+    - 会跳过未在榜单表中出现的提交（计入 skipped_no_user），并把编译错误（CE）排除在计罚之外。
     - 输出字段顺序固定为 `['id','uid','problem','school','username','realname','status','submit_time']`。
 
 - `peek_oj.py`
@@ -59,7 +59,7 @@
 
 ### 运行顺序
 
-1. 合并报名表与提交表：
+1. 合并榜单表与提交表：
 
    - 覆盖式重建（清空旧的 `output/result.csv` 并重建）：
 
@@ -84,5 +84,5 @@
 ### 常见注意事项与调试建议
 
 - 若脚本找不到 `src/` 下的 CSV，请检查文件是否位于 `src/`，或放到 `code/` 以作回退。
-- `merge_submissions.py` 会跳过没有报名信息的提交；若你希望把 HOJ 导入的行也合并，请准备 `hoj_sub.csv` 并使用 `--append-oj` 或把其内容拷贝到 `src/hoj_sub.csv`。
+- `merge_submissions.py` 会跳过没有榜单信息的提交；若你希望把 HOJ 导入的行也合并，请准备 `hoj_sub.csv` 并使用 `--append-oj` 或把其内容拷贝到 `src/hoj_sub.csv`。
 - 时间解析在不同脚本中略有差异（`merge_submissions.py` 的 `normalize_time` 与 `convert.py` 的 `parse_submission_time`），遇到时间解析失败的行会被跳过或原样写出，排查时可用 `peek_result.py` / `peek_random.py` / `peek_oj.py` 快速查看样本。
