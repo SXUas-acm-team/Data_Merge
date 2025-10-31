@@ -122,7 +122,8 @@
               <a href="https://tools.icpc.global/resolver/" target="_blank" rel="noopener">https://tools.icpc.global/resolver/</a>
             </li>
             <li>解压后，将本页导出的 <code>converted.ndjson</code> 放入解压目录。</li>
-            <li>在该目录终端执行：</li>
+            <li>由于通过本项目转化得到的converted.ndjson不包含奖项信息，需要比赛筹备者通过award.sh自行设置奖项后再进行滚榜</li>
+              <li>以上准备工作完成后，就可以通过以下命令开始滚榜了:</li>
           </ol>
           <pre><code>./resolver.sh ./converted.ndjson</code></pre>
           <p class="hint">注意：如队名包含中文，请替换 Resolver 的字体文件以避免乱码。</p>
