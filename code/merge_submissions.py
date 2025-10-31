@@ -248,9 +248,12 @@ def append_oj_sub():
             st_raw = (r.get('status') or '').strip()
             status = '1' if st_raw in {'1', 'Accepted', 'AC', '答案正确'} else '0'
             submit_time = (r.get('submit_time') or r.get('gmt_create') or '').strip()
+            # 尽量提供稳定 uid：优先使用平台 username，其次 realname；实在没有则用生成的顺序 id
+            uid = username or realname or f"hoj_{base_id + idx}"
 
             out = {
                 'id': str(base_id + idx),
+                'uid': uid,
                 'problem': problem,
                 'school': school,
                 'username': username,

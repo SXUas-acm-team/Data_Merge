@@ -5,3 +5,6 @@ contest-start-time: 2025-10-18 13:00:00
 contest-frozen-time: 2025-10-18 13:30:00
 contest-end-time: 2025-10-18 16:00:00
 contest-finalize-time: 2025-10-18 16:00:00
+
+# 是否在最终滚榜页面中带上学校，如："学校 - 姓名"
+display_team_name_with_school: true

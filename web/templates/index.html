@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ICPC Resolver滚榜文件在线生成</title>
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>ICPC Resolver滚榜文件在线生成</h1>
+      <p>目前已经支持牛客与HOJ。上传或粘贴表格内容，一键导出 NDJSON（滚榜文件）。</p>
+    </header>
+
+    <main>
+      <section class="steps">
+        <h2>需要准备的文件</h2>
+        <ol>
+          <li>n_name.csv牛客（报名信息：uid 在第2列，真实名称在第7列，学校在第11列）</li>
+          <li>n_problem.csv（题目信息：推荐表头 <code>id,name</code> 或至少首列为题目标签 A/B/C...）</li>
+          <li>n_sub.csv（牛客提交记录：需包含 <code>提交id, 用户id, 题目名称, 提交状态, 提交时间</code>）</li>
+          <li>hoj_sub.csv（可选，外部 HOJ 记录：需包含 <code>display_id, status, submit_time/gmt_create, username, realname</code>）</li>
+        </ol>
+      </section>
+
+      <form id="convert-form" action="/convert" method="post" enctype="multipart/form-data">
+        <section class="block">
+          <h3>比赛信息</h3>
+          <div class="inputs grid-2">
+            <label>
+              比赛名称
+              <input type="text" name="contest_name" placeholder="滚榜时显示名称" required />
+            </label>
+            <label class="switch">
+              <input type="checkbox" name="display_team_name_with_school" checked />
+              <span>是否在最终滚榜页面中带上学校，如："学校 - 姓名"</span>
+            </label>
+            <label>
+              开始时间（同时作为初始化时间）
+              <input type="datetime-local" name="contest_start_both" required />
+            </label>
+            <label>
+              冻结时间
+              <input type="datetime-local" name="contest_frozen_time" required />
+            </label>
+            <label>
+              结束时间（同时作为 Finalize 时间）
+              <input type="datetime-local" name="contest_end_both" required />
+            </label>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3>n_problem.csv</h3>
+          <div class="inputs">
+            <label>上传文件<input type="file" name="n_problem" accept=".csv" /></label>
+            <span class="or">或</span>
+            <label>粘贴文本</label>
+            <textarea name="n_problem_text" placeholder="label&#10;A&#10;B&#10;C"></textarea>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3>n_name.csv</h3>
+          <div class="inputs">
+            <label>上传文件<input type="file" name="n_name" accept=".csv" /></label>
+            <span class="or">或</span>
+            <label>粘贴文本</label>
+            <textarea name="n_name_text" placeholder=",uid,,,,,真实名称,,学校,..."></textarea>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3>n_sub.csv</h3>
+          <div class="inputs">
+            <label>上传文件<input type="file" name="n_sub" accept=".csv" /></label>
+            <span class="or">或</span>
+            <label>粘贴文本</label>
+            <textarea name="n_sub_text" placeholder="提交id,用户id,题目名称,提交状态,提交时间"></textarea>
+          </div>
+        </section>
+
+        <section class="block">
+          <h3>hoj_sub.csv（可选）</h3>
+          <div class="inputs">
+            <label>上传文件<input type="file" name="hoj_sub" accept=".csv" /></label>
+            <span class="or">或</span>
+            <label>粘贴文本</label>
+            <textarea name="hoj_sub_text" placeholder="display_id,status,submit_time(gmt_create),username,realname"></textarea>
+          </div>
+        </section>
+
+        <div class="actions">
+          <button type="submit">一键生成 NDJSON</button>
+        </div>
+      </form>
+    </main>
+
+    <script src="/static/main.js"></script>
+  </body>
+  </html>

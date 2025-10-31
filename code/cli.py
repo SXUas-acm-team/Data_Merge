@@ -78,7 +78,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
 
-    cmd = args.command or 'all'
+    # 无子命令时显示帮助而不是默认执行 all
+    if args.command is None:
+        parser.print_help()
+        return 0
+    cmd = args.command
     if cmd == 'merge':
         run_merge(overwrite=getattr(args, 'overwrite', False), append_oj=getattr(args, 'append_oj', False))
         return 0
