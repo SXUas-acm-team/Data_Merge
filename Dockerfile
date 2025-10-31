@@ -17,6 +17,6 @@ RUN pip install -r requirements.txt
 
 COPY . .
 
-EXPOSE 5000
+EXPOSE 9999
 
-CMD ["python", "-m", "gunicorn", "-w", "2", "-b", "0.0.0.0:5000", "web.app:app"]
+CMD ["python", "-m", "gunicorn", "-w", "2", "-b", "0.0.0.0:9999", "web.app:app"]

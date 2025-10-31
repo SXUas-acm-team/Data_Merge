@@ -1,6 +1,21 @@
 // 简单增强：提交前做下必填检查，提示用户
 document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('convert-form');
+
+  // 初始化日期时间选择器（24小时制，带秒，格式与后端解析兼容）
+  if (window.flatpickr) {
+    const fpOpts = {
+      enableTime: true,
+      enableSeconds: true,
+      time_24hr: true,
+      dateFormat: 'Y-m-d H:i:S',
+      allowInput: true,
+    };
+    window.flatpickr('input[name="contest_start_both"]', fpOpts);
+    window.flatpickr('input[name="contest_frozen_time"]', fpOpts);
+    window.flatpickr('input[name="contest_end_both"]', fpOpts);
+  }
+
   form.addEventListener('submit', (e) => {
   // 必填校验：比赛名称 + 三个时间，n_name，n_problem，n_sub
     const name = form.querySelector('input[name="contest_name"]')?.value.trim();

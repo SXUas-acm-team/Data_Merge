@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ICPC Resolver滚榜文件在线生成</title>
     <link rel="stylesheet" href="/static/style.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
   </head>
   <body>
     <header>
@@ -16,10 +17,10 @@
       <section class="steps">
         <h2>需要准备的文件</h2>
         <ol>
-          <li>n_name.csv牛客（报名信息：uid 在第2列，真实名称在第7列，学校在第11列）</li>
-          <li>n_problem.csv（题目信息：推荐表头 <code>id,name</code> 或至少首列为题目标签 A/B/C...）</li>
-          <li>n_sub.csv（牛客提交记录：需包含 <code>提交id, 用户id, 题目名称, 提交状态, 提交时间</code>）</li>
-          <li>hoj_sub.csv（可选，外部 HOJ 记录：需包含 <code>display_id, status, submit_time/gmt_create, username, realname</code>）</li>
+          <li>n_name.csv 牛客报名信息文档 需要携带用户ID 请联系牛客管理员</li>
+          <li>n_problem.csv 题目信息对应第一列id(如A,B,C) 第二列题目名称</li>
+          <li>n_sub.csv 牛客比赛提交记录 需要携带用户ID 请联系牛客管理员</li>
+          <li>hoj_sub.csv（可选，外部 HOJ 记录 请直接根据比赛id筛选数据库的contest_record表）</li>
         </ol>
       </section>
 
@@ -36,66 +37,103 @@
               <span>是否在最终滚榜页面中带上学校，如："学校 - 姓名"</span>
             </label>
             <label>
-              开始时间（同时作为初始化时间）
-              <input type="datetime-local" name="contest_start_both" required />
+              开始时间
+              <input type="text" class="dt-input" name="contest_start_both" placeholder="YYYY-MM-DD HH:mm:ss" required />
             </label>
             <label>
-              冻结时间
-              <input type="datetime-local" name="contest_frozen_time" required />
+              封榜时间
+              <input type="text" class="dt-input" name="contest_frozen_time" placeholder="YYYY-MM-DD HH:mm:ss" required />
             </label>
             <label>
-              结束时间（同时作为 Finalize 时间）
-              <input type="datetime-local" name="contest_end_both" required />
+              结束时间
+              <input type="text" class="dt-input" name="contest_end_both" placeholder="YYYY-MM-DD HH:mm:ss" required />
             </label>
           </div>
         </section>
 
         <section class="block">
-          <h3>n_problem.csv</h3>
+          <h3>n_problem.csv 题目信息～对应第一列id(如A,B,C) 第二列题目名称</h3>
           <div class="inputs">
-            <label>上传文件<input type="file" name="n_problem" accept=".csv" /></label>
-            <span class="or">或</span>
-            <label>粘贴文本</label>
-            <textarea name="n_problem_text" placeholder="label&#10;A&#10;B&#10;C"></textarea>
+            <div class="stack">
+              <label class="label">上传文件</label>
+              <input type="file" name="n_problem" accept=".csv" />
+            </div>
+            <div class="divider"><span class="or">或</span></div>
+            <div class="stack">
+              <label class="label">粘贴文本</label>
+              <textarea name="n_problem_text" placeholder="id,name &#10;A,题目一&#10;B,题目二&#10; "></textarea>
+            </div>
           </div>
         </section>
 
         <section class="block">
-          <h3>n_name.csv</h3>
+          <h3>n_name.csv 牛客报名信息文档～需要携带用户ID 请联系牛客管理员</h3>
           <div class="inputs">
-            <label>上传文件<input type="file" name="n_name" accept=".csv" /></label>
-            <span class="or">或</span>
-            <label>粘贴文本</label>
-            <textarea name="n_name_text" placeholder=",uid,,,,,真实名称,,学校,..."></textarea>
+            <div class="stack">
+              <label class="label">上传文件</label>
+              <input type="file" name="n_name" accept=".csv" />
+            </div>
+            <div class="divider"><span class="or">或</span></div>
+            <div class="stack">
+              <label class="label">粘贴文本</label>
+              <textarea name="n_name_text" placeholder=",uid,,,,,真实名称,,学校,..."></textarea>
+            </div>
           </div>
         </section>
 
         <section class="block">
-          <h3>n_sub.csv</h3>
+          <h3>n_sub.csv 牛客比赛提交记录～需要携带用户ID 请联系牛客管理员</h3>
           <div class="inputs">
-            <label>上传文件<input type="file" name="n_sub" accept=".csv" /></label>
-            <span class="or">或</span>
-            <label>粘贴文本</label>
-            <textarea name="n_sub_text" placeholder="提交id,用户id,题目名称,提交状态,提交时间"></textarea>
+            <div class="stack">
+              <label class="label">上传文件</label>
+              <input type="file" name="n_sub" accept=".csv" />
+            </div>
+            <div class="divider"><span class="or">或</span></div>
+            <div class="stack">
+              <label class="label">粘贴文本</label>
+              <textarea name="n_sub_text" placeholder="提交id,用户id,题目名称,提交状态,提交时间"></textarea>
+            </div>
           </div>
         </section>
 
         <section class="block">
-          <h3>hoj_sub.csv（可选）</h3>
+          <h3>hoj_sub.csv（可选，外部 HOJ 记录 请直接根据比赛id筛选数据库的contest_record表）</h3>
           <div class="inputs">
-            <label>上传文件<input type="file" name="hoj_sub" accept=".csv" /></label>
-            <span class="or">或</span>
-            <label>粘贴文本</label>
-            <textarea name="hoj_sub_text" placeholder="display_id,status,submit_time(gmt_create),username,realname"></textarea>
+            <div class="stack">
+              <label class="label">上传文件</label>
+              <input type="file" name="hoj_sub" accept=".csv" />
+            </div>
+            <div class="divider"><span class="or">或</span></div>
+            <div class="stack">
+              <label class="label">粘贴文本</label>
+              <textarea name="hoj_sub_text" placeholder="display_id,status,submit_time(gmt_create),username,realname"></textarea>
+            </div>
           </div>
         </section>
 
         <div class="actions">
           <button type="submit">一键生成 NDJSON</button>
         </div>
+
+        <section class="steps">
+          <h2>如何使用 ICPC Resolver 滚榜</h2>
+          <ol>
+            <li>下载 ICPC Resolver 预发布版本（Prerelease）：
+              <a href="https://tools.icpc.global/resolver/" target="_blank" rel="noopener">https://tools.icpc.global/resolver/</a>
+            </li>
+            <li>解压后，将本页导出的 <code>converted.ndjson</code> 放入解压目录。</li>
+            <li>在该目录终端执行：</li>
+          </ol>
+          <pre><code>./resolver.sh ./converted.ndjson</code></pre>
+          <p class="hint">注意：如队名包含中文，请替换 Resolver 的字体文件以避免乱码。</p>
+        </section>
       </form>
     </main>
+    <footer>
+      <a href="https://github.com/SXUas-acm-team/Data_Merge" target="_blank" rel="noopener">Data_Merge 项目主页</a>
+    </footer>
 
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <script src="/static/main.js"></script>
   </body>
   </html>
