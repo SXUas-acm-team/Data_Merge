@@ -3,19 +3,34 @@
 将多来源 CSV 合并为统一 `output/result.csv`，并一键生成 DOMjudge 事件流 `output/converted.ndjson`。
 
 ## 快速开始
+### 安装依赖
+通过以下命令安装需要的库:
 
 ```bash
 # 安装依赖
 python3 -m pip install -U ndjson pyyaml
 
+```
+### 配置竞赛信息
+打开`src/contest-info.yaml`文件，根据格式将竞赛信息填入配置文件
+
+若需要在滚榜时将学校名添加在队伍名前面，将`display_team_name_with_school`项置为`true`即可
+
+### 使用命令行
+
+```bash
 # 一步到位：从零重建 + 追加 oj_sub + 转换为 NDJSON
 python3 code/cli.py all --overwrite --append-oj
 ```
 
+### 输出
 生成：
 - `output/result.csv`（合并后的统一提交数据）
 - `output/converted.ndjson`（DOMjudge 事件流）
 
+输出的`output/converted.ndjson`文件不包含奖项，需要用户使用ICPC resolver的`award.sh`(Windows下为`award.sh`)手动为比赛分配奖牌数量
+
+之后就可以使用`resolver.sh`愉快的滚榜啦
 ## Web 界面（在线生成 NDJSON）
 
 网页端现已支持“直接填写比赛信息 + 上传必要 CSV”，一键导出 `.ndjson`：
