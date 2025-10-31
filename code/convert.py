@@ -268,8 +268,15 @@ with open(result_csv_path, "r", encoding="utf-8-sig", newline='') as result_csv:
             # 未在报名名单中的提交，跳过
             continue
         submission_time_unformatted = row[7]
-        status = row[status_idx]
-        # 对空/非法时间做容错：跳过该提交，避免整个转换失败
+        # 将 result.csv 的状态规范化（避免 '1'/'0' 被当作 WA）
+        raw_status = (row[status_idx] or '').strip()
+        upper_status = raw_status.upper()
+        if raw_status in {'1', 'True', 'true'} or upper_status in {'AC', 'ACCEPTED', 'OK', '答案正确'}:
+            status = 'AC'
+        elif raw_status in {'0', 'False', 'false'} or upper_status in {'WA', 'WRONG ANSWER', '答案错误'}:
+            status = 'WA'
+        else:
+            status = upper_status if upper_status in {'AC','CE','MLE','NO','OLE','RTE','TLE','WA'} else 'WA'
         if not submission_time_unformatted or not str(submission_time_unformatted).strip():
             continue
         try:

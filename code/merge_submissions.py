@@ -66,6 +66,18 @@ def normalize_time(s: str) -> str:
     return s
 
 
+def normalize_status(s: str) -> str:
+    if s is None:
+        return 'OTHER'
+    t = s.strip()
+    tu = t.upper()
+    if t in {'1', 'True', 'true'} or tu in {'AC', 'ACCEPTED', 'OK', '答案正确'}:
+        return 'AC'
+    if tu in {'CE', 'COMPILE ERROR', '编译错误'}:
+        return 'CE'
+    return 'OTHER'
+
+
 def load_user_map() -> Dict[str, Dict[str, str]]:
     user_map: Dict[str, Dict[str, str]] = {}
     rows = read_csv(PATH_NAME)
@@ -192,6 +204,11 @@ def merge_and_append():
             submit_time = (r.get('提交时间') or '').strip()
             submit_status = (r.get('提交状态') or '').strip()
 
+            # 编译错误不计罚时：直接跳过该提交
+            norm = normalize_status(submit_status)
+            if norm == 'CE':
+                continue
+
             # 用户信息：若找不到用户，整条记录跳过
             if uid not in user_map:
                 skipped_no_user += 1
@@ -205,8 +222,8 @@ def merge_and_append():
             # 题目编号
             prob_id = prob_map.get(prob_name, '')
 
-            # 状态
-            status = '1' if submit_status == '答案正确' else '0'
+            # 状态：仅将 AC 标为 '1'，其余（非 CE 的错误）统一为 '0'
+            status = '1' if norm == 'AC' else '0'
 
             out = {
                 'id': sid,
@@ -246,7 +263,11 @@ def append_oj_sub():
             username = (r.get('username') or '').strip()
             realname = (r.get('realname') or '').strip()
             st_raw = (r.get('status') or '').strip()
-            status = '1' if st_raw in {'1', 'Accepted', 'AC', '答案正确'} else '0'
+            # 编译错误不计罚时：直接跳过
+            norm = normalize_status(st_raw)
+            if norm == 'CE':
+                continue
+            status = '1' if norm == 'AC' else '0'
             submit_time = (r.get('submit_time') or r.get('gmt_create') or '').strip()
             # 尽量提供稳定 uid：优先使用平台 username，其次 realname；实在没有则用生成的顺序 id
             uid = username or realname or f"hoj_{base_id + idx}"
