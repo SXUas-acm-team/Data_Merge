@@ -33,8 +33,15 @@
         <ol>
           <li>n_problem.csv 题目信息对应第一列id(如A,B,C) 第二列题目名称</li>
           <li>n_name.csv 牛客榜单导出信息 需要携带用户ID 请联系牛客管理员</li>
-          <li>n_sub.csv 牛客比赛提交记录 需要携带用户ID 请联系牛客管理员</li>
+          <li>n_sub.csv 牛客比赛提交记录 需要携带用户ID 自行导出</li>
           <li>hoj_sub.csv（可选，外部 HOJ 记录 请直接根据比赛id筛选数据库的contest_record表）</li>
+        </ol>
+      </section>
+            <section class="steps">
+        <h2>你可以任选以下两种方式处理数据</h2>
+        <ol>
+          <li>使用Excel打开xls文件,选择有效区域形成的最小矩形,使用Ctrl+C复制后粘贴在右侧文本框中</li>
+          <li>使用Excel将xls文件另存为csv格式，并提交</li>
         </ol>
       </section>
 
@@ -83,7 +90,7 @@
 
         <section class="block">
           <h3>n_name.csv 牛客榜单导出文档～需要携带用户ID 请联系牛客管理员</h3>
-          <p class="hint" style="color:#6c757d;margin-top:6px;margin-bottom:6px;">请自行将获取到的 .xls 格式另存为 .csv 方便导入</p>
+          <p class="hint" style="color:#6c757d;margin-top:6px;margin-bottom:6px;">请自行将获取到的 .xls 格式另存为 .csv 方便导入 因涉及到用户隐私，这一步请联系牛客管理员帮助导出</p>
           <div class="inputs">
             <div class="stack">
               <label class="label">上传文件</label>
@@ -99,8 +106,8 @@
         </section>
 
         <section class="block">
-          <h3>n_sub.csv 牛客比赛提交记录～需要携带用户ID 请联系牛客管理员</h3>
-          <p class="hint" style="color:#6c757d;margin-top:6px;margin-bottom:6px;">请自行将获取到的 .xls 格式另存为 .csv 方便导入</p>
+          <h3>n_sub.csv 牛客比赛提交记录～需要携带用户ID 请自行导出</h3>
+          <p class="hint" style="color:#6c757d;margin-top:6px;margin-bottom:6px;">请使用牛客批量导出提交代码链接 https://ac.nowcoder.com/acm/admin/code-export?id=比赛id 导出</p>
           <div class="inputs">
             <div class="stack">
               <label class="label">上传文件</label>
@@ -144,7 +151,7 @@
             </li>
             <li>解压后，将本页导出的 <code>converted.ndjson</code> 放入解压目录。</li>
             <li>由于通过本项目转化得到的converted.ndjson不包含奖项信息，需要比赛筹备者通过award.sh自行设置奖项后再进行滚榜</li>
-              <li>以上准备工作完成后，就可以通过以下命令开始滚榜了:</li>
+              <li>以上准备工作完成后，就可以通过以下命令开始滚榜了</li>
           </ol>
           <pre><code>./resolver.sh ./converted.ndjson</code></pre>
           <p class="hint">注意：如队名包含中文，请替换 Resolver 的字体文件以避免乱码。</p>
