@@ -44,9 +44,9 @@ python3 code/cli.py all --overwrite --append-oj
 - `output/result.csv`（合并后的统一提交数据）
 - `output/converted.ndjson`（DOMjudge 事件流）
 
-输出的`output/converted.ndjson`文件不包含奖项，需要用户使用ICPC resolver的`award.sh`(Windows下为`award.sh`)手动为比赛分配奖牌数量
+输出的`output/converted.ndjson`文件不包含奖项，需要用户使用ICPC resolver的`award.sh`(Windows下为`award.bat`)手动为比赛分配奖牌数量
 
-之后就可以使用`resolver.sh`愉快的滚榜啦
+之后就可以使用`resolver.sh`(Windows下为`resolver.bat`)愉快的滚榜啦
 
 ## 放置输入文件（src/）
 
