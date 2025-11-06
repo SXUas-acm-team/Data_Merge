@@ -85,13 +85,17 @@ def load_user_map() -> Dict[str, Dict[str, str]]:
         uid = (r.get('用户ID') or '').strip()
         if not uid:
             continue
+        uid_school = (r.get('学校') or '').strip()
+        if not uid_school:
+            uid_school = (r.get('默认学校') or '').strip()
+        if not uid_school:
+            uid_school = ''
         user_map[uid] = {
-            '学校': (r.get('学校') or '').strip(),
+            '学校': uid_school,
             '昵称': (r.get('昵称') or '').strip(),
             '真实名称': (r.get('真实名称') or '').strip(),
         }
     return user_map
-
 
 def load_problem_map() -> Dict[str, str]:
     prob_map: Dict[str, str] = {}
