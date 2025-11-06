@@ -230,6 +230,9 @@ for row in result_rows:
         print(f"[warn] skip submission #{submit_seq} invalid problem_id='{raw_problem}'")
         continue
     be.build_judge_info(token_cnt, submit_seq, "cpp", submission_time, contest_start_time, team_entry[2], pid, status, submission_time, events)
+    if len(events) > 100:
+        ndjson.dump(events, event_file, ensure_ascii=False)
+        events.clear()
 
 # 比赛结束与 finalize 信息
 be.build_update_info(token_cnt, contest_start_time, contest_end_time, contest_frozen_time, None, contest_init_time, events)
