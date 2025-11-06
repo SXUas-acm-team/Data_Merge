@@ -87,57 +87,52 @@ be.build_language_info(token_cnt, "cpp", "62531e780378bb346939d18aacdfff1c", "g+
 be.build_language_info_with_runner(token_cnt, "java", "86ba56cb70a79a32c0382214beda8faa", "javac -version","java -version", "Java", ["java"], 1.0, "Main class", contest_init_time, events)
 be.build_language_info_with_runner(token_cnt, "python3", "4e301e4bc46ab73673e209ee3437707d", "pypy3 --version","pypy3 --version", "Python 3", ["py"], 1.0, "Main file", contest_init_time, events)
 
-# 处理题目：从 /src/n_problem.csv 读取首列为题目标签
-problem_info = []
-with open(input_path("n_problem.csv"), "r", encoding="utf-8-sig", newline='') as problem_csv:
-    reader = csv.reader(problem_csv)
-    # 不确定是否有表头，尝试读取全部后在下面从索引1开始
-    for row in reader:
-        if not row:
-            continue
-        problem_info.append(row[0])
+result_csv_path = OUTPUT_DIR / "result.csv"
+if not result_csv_path.exists() or result_csv_path.stat().st_size == 0:
+    raise SystemExit(f"result.csv not found or empty at {result_csv_path}")
 
-for i in range(1, len(problem_info)):
-    be.build_problem_info(token_cnt, problem_info[i], i, 1.0, contest_init_time, events)
+# 先一次性读入 result.csv，后续多处使用
+result_rows = []
+with open(result_csv_path, "r", encoding="utf-8-sig", newline='') as result_csv:
+    reader = csv.reader(result_csv)
+    try:
+        header = next(reader)
+    except StopIteration:
+        header = None
+    for row in reader:
+        if row:
+            result_rows.append(row)
+
+# 题目集合：直接从 result.csv 的第 3 列(problem)收集，按字母排序
+problem_ids = []
+seen = set()
+for row in result_rows:
+    pid = (row[2] or "").strip()
+    if not pid:
+        continue
+    if pid not in seen:
+        seen.add(pid)
+        problem_ids.append(pid)
+problem_ids.sort()
+
+# 输出题目事件
+for i, pid in enumerate(problem_ids, start=1):
+    be.build_problem_info(token_cnt, pid, i, 1.0, contest_init_time, events)
+
+# 校验集合
+valid_problem_ids = set(problem_ids)
+
 
 # 用户组（参赛选手）
 be.build_group_info(token_cnt, "participants", False, 1, contest_init_time, events)
 
-# 学校信息优先从 /output/result.csv 去重统计（列索引 3），以兼容外部 OJ 数据；若缺失则回退到 /src/n_name.csv
+# 学校信息：仅从 result.csv 去重统计（列索引 3：school）
 school_info_set = set()
-try:
-    with open(OUTPUT_DIR / "result.csv", "r", encoding="utf-8-sig", newline='') as result_csv:
-        reader = csv.reader(result_csv)
-        # 跳过表头
-        try:
-            header = next(reader)
-        except StopIteration:
-            header = None
-        for row in reader:
-            if not row or len(row) <= 3:
-                continue
-            school = (row[3] or "").strip()
-            if school:
-                school_info_set.add(school)
-except FileNotFoundError:
-    # 没有 result.csv 时回退
-    pass
-
-# 回退方案：从报名表 n_name.csv 读取（列索引 10）
-if not school_info_set:
-    with open(input_path("n_name.csv"), "r", encoding="utf-8-sig", newline='') as name_csv:
-        reader = csv.reader(name_csv)
-        # 跳过表头
-        try:
-            header = next(reader)
-        except StopIteration:
-            header = None
-        for row in reader:
-            if not row or len(row) <= 10:
-                continue
-            school = (row[10] or "").strip()
-            if school:
-                school_info_set.add(school)
+for row in result_rows:
+    if len(row) > 3:
+        school = (row[3] or "").strip()
+        if school:
+            school_info_set.add(school)
 
 school_info = {}
 school_info_inverse = {}
@@ -151,79 +146,35 @@ for name in school_info_set:
 for i in sorted(school_info_inverse.keys()):
     be.build_school_info(token_cnt, i, school_info_inverse[i], school_info_inverse[i], "CHN", contest_init_time, events)
 
-# 团队与账户信息（个人赛：team 与 user 一一对应）
+"""
+仅从 result.csv 构建：
+- uid: 第2列
+- school: 第4列
+- username: 第5列
+- realname: 第6列
+"""
 team_info_id = {}
 tid = 0
-with open(input_path("n_name.csv"), "r", encoding="utf-8-sig", newline='') as name_csv:
-    reader = csv.reader(name_csv)
-    # 跳过表头
-    try:
-        header = next(reader)
-    except StopIteration:
-        header = None
-    for row in reader:
-        if not row:
-            continue
-        # uid: 第2列（索引1），队名：第7列（索引6），学校名：第11列（索引10）
-        uid = row[1]
-        team_name = row[6]
-        school_name = row[10]
-        # 防止学校未出现在集合时出错
-        if school_name not in school_info:
-            school_info[school_name] = sid
-            school_info_inverse[sid] = school_name
-            be.build_school_info(token_cnt, sid, school_name, school_name, "CHN", contest_init_time, events)
-            sid += 1
-        team_info_id[uid] = [school_name, team_name, tid]
-        tid += 1
-
-# 兼容补充：为 result.csv 中未出现在报名表 n_name.csv 的选手（含 HOJ 导入、或 uid 为空）建队
-# - 对于有 uid 但未报名的，使用 result.csv 的 realname/username 建队
-# - 对于 uid 为空的（HOJ 行），使用 (school, realname, username) 组合生成稳定键
-team_info_fallback = {}
-def _fallback_key(school: str, realname: str, username: str) -> str:
-    s = (school or '').strip()
-    r = (realname or '').strip()
-    u = (username or '').strip()
-    return f"{s}|{r}|{u}"
-
-result_csv_path = OUTPUT_DIR / "result.csv"
-if result_csv_path.exists():
-    with open(result_csv_path, "r", encoding="utf-8-sig", newline='') as result_csv:
-        reader = csv.reader(result_csv)
-        try:
-            header = next(reader)
-        except StopIteration:
-            header = None
-        for row in reader:
-            if not row:
-                continue
-            uid_r = (row[1] or '').strip()
-            school_r = (row[3] or '').strip()
-            username_r = (row[4] or '').strip()
-            realname_r = (row[5] or '').strip()
-            # 补学校表
-            if school_r and school_r not in school_info:
-                school_info[school_r] = sid
-                school_info_inverse[sid] = school_r
-                be.build_school_info(token_cnt, sid, school_r, school_r, "CHN", contest_init_time, events)
-                sid += 1
-            # 有 uid 但未建队：补建
-            if uid_r:
-                if uid_r not in team_info_id:
-                    name_r = realname_r or username_r or uid_r
-                    team_info_id[uid_r] = [school_r, name_r, tid]
-                    tid += 1
-            else:
-                # uid 为空：按 (school, realname, username) 组合稳定识别
-                fbk = _fallback_key(school_r, realname_r, username_r)
-                if fbk and fbk not in team_info_fallback:
-                    name_r = realname_r or username_r or "未知选手"
-                    team_info_fallback[fbk] = [school_r, name_r, tid]
-                    # 也放入 team_info_id，使用伪 uid，便于统一创建 team/account 事件
-                    pseudo_uid = f"__oj__{fbk}"
-                    team_info_id[pseudo_uid] = [school_r, name_r, tid]
-                    tid += 1
+for row in result_rows:
+    if not row:
+        continue
+    uid = (row[1] or '').strip()
+    if not uid:
+        continue
+    if uid in team_info_id:
+        continue
+    school_r = (row[3] or '').strip()
+    username_r = (row[4] or '').strip()
+    realname_r = (row[5] or '').strip()
+    # 学校表兜底补充
+    if school_r and school_r not in school_info:
+        school_info[school_r] = sid
+        school_info_inverse[sid] = school_r
+        be.build_school_info(token_cnt, sid, school_r, school_r, "CHN", contest_init_time, events)
+        sid += 1
+    name_r = realname_r or username_r or uid
+    team_info_id[uid] = [school_r, name_r, tid]
+    tid += 1
 
 for uid, (school_name, name, team_id) in team_info_id.items():
     # 根据配置决定队伍显示名：学校 - 姓名 或 仅姓名
@@ -241,59 +192,47 @@ for uid, (school_name, name, team_id) in team_info_id.items():
 # 添加比赛开始信息
 be.build_update_info(token_cnt, contest_start_time, None, None, None, contest_init_time, events)
 
-# 处理提交信息：从 /output/result.csv 读取
+# 处理提交信息：直接使用内存里的 result_rows
 status_idx = 6
-result_csv_path = OUTPUT_DIR / "result.csv"
-with open(result_csv_path, "r", encoding="utf-8-sig", newline='') as result_csv:
-    reader = csv.reader(result_csv)
-    # 跳过表头
+submit_seq = 0
+for row in result_rows:
+    if not row:
+        continue
+    submit_seq += 1
+    uid = (row[1] or '').strip()
+    raw_problem = (row[2] or '').strip()
+    team_entry = team_info_id.get(uid)
+    if not team_entry:
+        # 未在名单中的提交（极少数），跳过
+        continue
+    submission_time_unformatted = row[7]
+    # 将 result.csv 的状态规范化（避免 '1'/'0' 被当作 WA）
+    raw_status = (row[status_idx] or '').strip()
+    upper_status = raw_status.upper()
+    if raw_status in {'1', 'True', 'true'} or upper_status in {'AC', 'ACCEPTED', 'OK', '答案正确'}:
+        status = 'AC'
+    elif raw_status in {'0', 'False', 'false'} or upper_status in {'WA', 'WRONG ANSWER', '答案错误'}:
+        status = 'WA'
+    else:
+        status = upper_status if upper_status in {'AC','CE','MLE','NO','OLE','RTE','TLE','WA'} else 'WA'
+    if not submission_time_unformatted or not str(submission_time_unformatted).strip():
+        continue
     try:
-        header = next(reader)
-    except StopIteration:
-        header = None
-    submit_seq = 0
-    for row in reader:
-        if not row:
-            continue
-        submit_seq += 1
-        uid = row[1]
-        problem = row[2]
-        # school_name = row[3]  # 如需使用
-        team_entry = team_info_id.get(uid)
-        if not team_entry:
-            # 尝试使用 fallback key 匹配（uid 为空或未报名但存在 HOJ 记录）
-            school_r = (row[3] or '').strip()
-            username_r = (row[4] or '').strip()
-            realname_r = (row[5] or '').strip()
-            fbk = _fallback_key(school_r, realname_r, username_r)
-            if fbk in team_info_fallback:
-                team_entry = team_info_fallback[fbk]
-        if not team_entry:
-            # 未在报名名单中的提交，跳过
-            continue
-        submission_time_unformatted = row[7]
-        # 将 result.csv 的状态规范化（避免 '1'/'0' 被当作 WA）
-        raw_status = (row[status_idx] or '').strip()
-        upper_status = raw_status.upper()
-        if raw_status in {'1', 'True', 'true'} or upper_status in {'AC', 'ACCEPTED', 'OK', '答案正确'}:
-            status = 'AC'
-        elif raw_status in {'0', 'False', 'false'} or upper_status in {'WA', 'WRONG ANSWER', '答案错误'}:
-            status = 'WA'
-        else:
-            status = upper_status if upper_status in {'AC','CE','MLE','NO','OLE','RTE','TLE','WA'} else 'WA'
-        if not submission_time_unformatted or not str(submission_time_unformatted).strip():
-            continue
-        try:
-            submission_time = parse_submission_time(submission_time_unformatted)
-        except Exception:
-            # 无法解析时间格式：跳过该条
-            continue
-        be.build_judge_info(token_cnt, submit_seq, "cpp", submission_time, contest_start_time, team_entry[2], problem, status, submission_time, events)
-        if len(events) > 100:
-            f = open(output_path, 'a', encoding='utf-8')
-            ndjson.dump(events, f, ensure_ascii=False)
-            f.write("\n")
-            events.clear()
+        submission_time = parse_submission_time(submission_time_unformatted)
+    except Exception:
+        # 无法解析时间格式：跳过该条
+        continue
+    # 直接使用 problem 列值作为题目 ID，并校验存在
+    pid = raw_problem
+    if not pid or (valid_problem_ids and pid not in valid_problem_ids):
+        print(f"[warn] skip submission #{submit_seq} invalid problem_id='{raw_problem}'")
+        continue
+    be.build_judge_info(token_cnt, submit_seq, "cpp", submission_time, contest_start_time, team_entry[2], pid, status, submission_time, events)
+    if len(events) > 100:
+        f = open(output_path, 'a', encoding='utf-8')
+        ndjson.dump(events, f, ensure_ascii=False)
+        f.write("\n")
+        events.clear()
 
 # 比赛结束与 finalize 信息
 be.build_update_info(token_cnt, contest_start_time, contest_end_time, contest_frozen_time, None, contest_init_time, events)

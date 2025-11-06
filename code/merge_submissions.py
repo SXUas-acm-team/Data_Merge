@@ -174,6 +174,7 @@ def merge_and_append():
     # 载入映射
     user_map = load_user_map()
     prob_map = load_problem_map()
+    valid_prob_ids = set(prob_map.values())
 
     # 是否覆盖式重建
     overwrite = os.environ.get('MERGE_OVERWRITE') == '1'
@@ -187,6 +188,7 @@ def merge_and_append():
 
     appended = 0
     skipped_no_user = 0
+    skipped_no_problem = 0  # 题目名称缺失或无法映射
     # 确保输出目录存在
     os.makedirs(os.path.dirname(PATH_RESULT), exist_ok=True)
     with open(PATH_RESULT, 'a', encoding='utf-8-sig', newline='') as f:
@@ -219,8 +221,14 @@ def merge_and_append():
             username = uinfo.get('昵称', '')
             realname = uinfo.get('真实名称', '')
 
-            # 题目编号
+            # 题目编号：题目名称为空或无法映射时，跳过该提交
+            if not prob_name:
+                skipped_no_problem += 1
+                continue
             prob_id = prob_map.get(prob_name, '')
+            if not prob_id:
+                skipped_no_problem += 1
+                continue
 
             # 状态：仅将 AC 标为 '1'，其余（非 CE 的错误）统一为 '0'
             status = '1' if norm == 'AC' else '0'
@@ -238,6 +246,8 @@ def merge_and_append():
             writer.writerow(out)
             appended += 1
 
+    # 输出汇总信息，便于排查数据质量
+    print(f"[merge] skipped_no_problem={skipped_no_problem}")
     return appended, len(submissions), skipped_no_user
 
 
@@ -251,14 +261,21 @@ def append_oj_sub():
     if not rows:
         return 0, 0
 
+    # 校验 OJ 的 display_id 是否在题目 ID 集合内
+    prob_map = load_problem_map()
+    valid_prob_ids = set(prob_map.values())
     base_id = get_max_result_id(PATH_RESULT)
     appended = 0
+    skipped_bad_problem = 0
     # 确保输出目录存在
     os.makedirs(os.path.dirname(PATH_RESULT), exist_ok=True)
     with open(PATH_RESULT, 'a', encoding='utf-8-sig', newline='') as f:
         writer = csv.DictWriter(f, fieldnames=RESULT_FIELDS)
         for idx, r in enumerate(rows, start=1):
             problem = (r.get('display_id') or '').strip()
+            if not problem or (valid_prob_ids and problem not in valid_prob_ids):
+                skipped_bad_problem += 1
+                continue
             school = '山西大学'
             username = (r.get('username') or '').strip()
             realname = (r.get('realname') or '').strip()
@@ -285,6 +302,7 @@ def append_oj_sub():
             writer.writerow(out)
             appended += 1
 
+    print(f"[merge] oj_skipped_bad_problem={skipped_bad_problem}")
     return appended, len(rows)
 
 

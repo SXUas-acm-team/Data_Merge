@@ -280,6 +280,11 @@ def build_judge_info(token_id, submission_id, language_id, submission_time, star
     contest_total_secs = int(contest_time.total_seconds())
     con_time = "{:02d}:{:02d}:{:02d}.000".format(contest_total_secs // 3600, (contest_total_secs % 3600) // 60,contest_total_secs % 60)
     #con_time = contest_time.strftime("%H:%M:%S.000")
+    # Guard and normalize problem id
+    pid = None if problem_id is None else str(problem_id).strip()
+    if not pid:
+        # skip invalid submission if problem id is missing
+        return ""
     # Normalize judgement result
     valid_types = {"AC","CE","MLE","NO","OLE","RTE","TLE","WA"}
     if isinstance(result, str):
@@ -299,7 +304,7 @@ def build_judge_info(token_id, submission_id, language_id, submission_time, star
             "time":str(sub_time),
             "contest_time":con_time,
             "team_id": str(team_id),
-            "problem_id": problem_id,
+            "problem_id": pid,
             "files":[
                 {
                     "href": "contests/external-id-submit-demo/submissions/" + str(submission_id) +"/files",

@@ -1,15 +1,15 @@
 # 请按照下列格式填写竞赛相关信息
 contest-name: 三晋七校ACM队招新联赛
 # 本次比赛创建时间(一般需要早于开始时间)
-contest-init-time: 2025-10-18 13:00:00
+contest-init-time: 2025-11-05 12:00:00
 # 本次比赛开始时间
-contest-start-time: 2025-10-18 13:00:00
+contest-start-time: 2025-11-05 12:00:00
 # 本次比赛封榜时间
-contest-frozen-time: 2025-10-18 13:30:00
+contest-frozen-time: 2025-11-05 18:00:00
 # 本次比赛结束时间
-contest-end-time: 2025-10-18 16:00:00
+contest-end-time: 2025-11-06 12:00:00
 # 本次比赛终止时间(用于向滚榜程序确定赛后校验完毕，不能早于比赛结束时间，不能晚于滚榜时间)
-contest-finalize-time: 2025-10-18 16:00:00
+contest-finalize-time: 2025-11-06 12:00:00
 
 # 是否在最终滚榜页面中带上学校，如："学校 - 姓名"
 display_team_name_with_school: true
