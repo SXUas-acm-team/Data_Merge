@@ -27,8 +27,8 @@ PATH_SUBM = os.path.join(SRC_DIR, 'n_sub.csv')
 PATH_RESULT = os.path.join(OUTPUT_DIR, 'result.csv')
 PATH_OJ = os.path.join(SRC_DIR, 'hoj_sub.csv')
 
-# 目标表头
-RESULT_FIELDS = ['id', 'uid' ,'problem', 'school', 'username', 'realname', 'status', 'submit_time']
+# 目标表头（新增 source 字段：nowcoder / hoj）
+RESULT_FIELDS = ['id', 'uid' ,'problem', 'school', 'username', 'realname', 'status', 'submit_time', 'source']
 
 
 def read_csv(path: str):
@@ -246,6 +246,7 @@ def merge_and_append():
                 'realname': realname,
                 'status': status,
                 'submit_time': normalize_time(submit_time),
+                'source': 'nowcoder',
             }
             writer.writerow(out)
             appended += 1
@@ -307,6 +308,7 @@ def append_oj_sub():
                 'realname': realname,
                 'status': status,
                 'submit_time': normalize_time(submit_time),
+                'source': 'hoj',
             }
             writer.writerow(out)
             appended += 1

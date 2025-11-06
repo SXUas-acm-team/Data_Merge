@@ -92,7 +92,6 @@ result_csv_path = OUTPUT_DIR / "result.csv"
 if not result_csv_path.exists() or result_csv_path.stat().st_size == 0:
     raise SystemExit(f"result.csv not found or empty at {result_csv_path}")
 
-# 先一次性读入 result.csv，后续多处使用
 result_rows = []
 with open(result_csv_path, "r", encoding="utf-8-sig", newline='') as result_csv:
     reader = csv.reader(result_csv)
@@ -127,7 +126,7 @@ valid_problem_ids = set(problem_ids)
 # 用户组（参赛选手）
 be.build_group_info(token_cnt, "participants", False, 1, contest_init_time, events)
 
-# 学校信息：仅从 result.csv 去重统计（列索引 3：school）
+# 学校信息：仅从 result.csv 去重统计
 school_info_set = set()
 for row in result_rows:
     if len(row) > 3:
@@ -135,17 +134,11 @@ for row in result_rows:
         if school:
             school_info_set.add(school)
 
-school_info = {}
-school_info_inverse = {}
-sid = 0
-for name in school_info_set:
-    school_info[name] = sid
-    school_info_inverse[sid] = name
-    sid += 1
-
-# 注意包含 0 在内的所有学校 id
-for i in sorted(school_info_inverse.keys()):
-    be.build_school_info(token_cnt, i, school_info_inverse[i], school_info_inverse[i], "CHN", contest_init_time, events)
+# 直接以学校名作为 organization 的 id
+created_schools = set()
+for name in sorted(school_info_set):
+    be.build_school_info(token_cnt, name, name, name, "CHN", contest_init_time, events)
+    created_schools.add(name)
 
 """
 仅从 result.csv 构建：
@@ -154,8 +147,10 @@ for i in sorted(school_info_inverse.keys()):
 - username: 第5列
 - realname: 第6列
 """
-team_info_id = {}
-tid = 0
+team_info_id = {}  # key=(source, uid) -> (school, name, team_id_int)
+used_team_ids = set()
+auto_team_id_base = 2000000000  # 非牛客来源的自增起点
+next_auto_id = auto_team_id_base
 for row in result_rows:
     if not row:
         continue
@@ -163,28 +158,50 @@ for row in result_rows:
     uid = (row[1] or '').strip()
     if not uid:
         continue
-    if uid in team_info_id:
+    source = (row[8] if len(row) > 8 else '').strip().lower()
+    key = (source or 'nowcoder', uid)
+    if key in team_info_id:
         continue
     school_r = (row[3] or '').strip()
     username_r = (row[4] or '').strip()
     realname_r = (row[5] or '').strip()
-    # 学校表兜底补充
-    if school_r and school_r not in school_info:
-        school_info[school_r] = sid
-        school_info_inverse[sid] = school_r
-        be.build_school_info(token_cnt, sid, school_r, school_r, "CHN", contest_init_time, events)
-        sid += 1
+    if school_r and school_r not in created_schools:
+        be.build_school_info(token_cnt, school_r, school_r, school_r, "CHN", contest_init_time, events)
+        created_schools.add(school_r)
     name_r = realname_r or username_r or uid
-    team_info_id[uid] = [school_r, name_r, tid]
-    tid += 1
+    # 分配队伍 ID：nowcoder 且 uid 为纯数字时使用 uid；否则使用高位段自增
+    team_id_int = None
+    if (source == 'nowcoder' or source == '') and uid.isdigit():
+        team_id_int = int(uid)
+        # 冲突保护
+        if team_id_int in used_team_ids:
+            # 极少出现：允许改用自增段
+            while next_auto_id in used_team_ids:
+                next_auto_id += 1
+            team_id_int = next_auto_id
+            used_team_ids.add(team_id_int)
+            next_auto_id += 1
+        else:
+            used_team_ids.add(team_id_int)
+    else:
+        while next_auto_id in used_team_ids:
+            next_auto_id += 1
+        team_id_int = next_auto_id
+        used_team_ids.add(team_id_int)
+        next_auto_id += 1
+    team_info_id[key] = [school_r, name_r, team_id_int]
 
-for uid, (school_name, name, team_id) in team_info_id.items():
+for (_source, _uid), (school_name, name, team_id) in team_info_id.items():
     # 根据配置决定队伍显示名：学校 - 姓名 或 仅姓名
     display_name = f"{school_name} - {name}" if display_with_school and str(school_name).strip() else str(name)
-    be.build_team_info(token_cnt, team_id, school_info[school_name], False, "participants", school_name, "CHN", display_name, contest_init_time, events)
+    org_id = school_name if school_name else ""
+    if org_id and org_id not in created_schools:
+        be.build_school_info(token_cnt, org_id, org_id, org_id, "CHN", contest_init_time, events)
+        created_schools.add(org_id)
+    be.build_team_info(token_cnt, team_id, org_id, False, "participants", school_name, "CHN", display_name, contest_init_time, events)
 
 # 账户（过滤占位名）
-for uid, (school_name, name, team_id) in team_info_id.items():
+for (_source, _uid), (school_name, name, team_id) in team_info_id.items():
     if name == "真实名称":
         continue
     # 账户展示同队伍名策略
@@ -202,8 +219,9 @@ for row in result_rows:
         continue
     submit_seq += 1
     uid = (row[1] or '').strip()
+    source = (row[8] if len(row) > 8 else '').strip().lower()
     raw_problem = (row[2] or '').strip()
-    team_entry = team_info_id.get(uid)
+    team_entry = team_info_id.get((source or 'nowcoder', uid))
     if not team_entry:
         # 未在名单中的提交（极少数），跳过
         continue
