@@ -285,9 +285,14 @@ def append_oj_sub():
             realname = (r.get('realname') or '').strip()
             st_raw = (r.get('status') or '').strip()
             # 编译错误不计罚时：直接跳过
+            if st_raw == '0':
+                continue
             norm = normalize_status(st_raw)
+            """
+            didn't work:
             if norm == 'CE':
                 continue
+            """
             status = '1' if norm == 'AC' else '0'
             submit_time = (r.get('submit_time') or r.get('gmt_create') or '').strip()
             # 尽量提供稳定 uid：优先使用平台 username，其次 realname；实在没有则用生成的顺序 id

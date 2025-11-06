@@ -13,6 +13,7 @@ CODE_DIR = PROJECT_ROOT / "code"
 OUTPUT_DIR = PROJECT_ROOT / "output"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 output_path = OUTPUT_DIR / "converted.ndjson"
+event_file = open(output_path, 'a', encoding='utf-8')
 with open(output_path, 'w', encoding='utf-8') as f:
     pass
 print(f"Wrote NDJSON to: {output_path}")
@@ -158,6 +159,7 @@ tid = 0
 for row in result_rows:
     if not row:
         continue
+
     uid = (row[1] or '').strip()
     if not uid:
         continue
@@ -228,13 +230,8 @@ for row in result_rows:
         print(f"[warn] skip submission #{submit_seq} invalid problem_id='{raw_problem}'")
         continue
     be.build_judge_info(token_cnt, submit_seq, "cpp", submission_time, contest_start_time, team_entry[2], pid, status, submission_time, events)
-    if len(events) > 100:
-        f = open(output_path, 'a', encoding='utf-8')
-        ndjson.dump(events, f, ensure_ascii=False)
-        f.write("\n")
-        events.clear()
 
 # 比赛结束与 finalize 信息
 be.build_update_info(token_cnt, contest_start_time, contest_end_time, contest_frozen_time, None, contest_init_time, events)
 be.build_update_info(token_cnt, contest_start_time, contest_end_time, contest_frozen_time, contest_finalize_time, contest_init_time, events)
-ndjson.dump(events, f, ensure_ascii=False)
+ndjson.dump(events, event_file, ensure_ascii=False)
