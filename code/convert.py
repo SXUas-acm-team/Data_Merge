@@ -250,6 +250,7 @@ for row in result_rows:
     be.build_judge_info(token_cnt, submit_seq, "cpp", submission_time, contest_start_time, team_entry[2], pid, status, submission_time, events)
     if len(events) > 100:
         ndjson.dump(events, event_file, ensure_ascii=False)
+        event_file.write("\n")
         events.clear()
 
 # 比赛结束与 finalize 信息
