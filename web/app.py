@@ -145,9 +145,45 @@ def convert_endpoint():
         )
         if proc.returncode != 0:
             raise RuntimeError(f"CLI 失败(exit={proc.returncode}): {proc.stderr.strip() or proc.stdout.strip()}")
-        ndjson_bytes = (tmp_out / 'converted.ndjson').read_bytes()
+
+        # 读取
+        converted_path = (tmp_out / 'converted.ndjson')
+        result_csv_path = (tmp_out / 'result.csv')
+        if not converted_path.exists():
+            raise RuntimeError("converted.ndjson 未生成，可能输入 CSV 不完整或脚本异常")
+        ndjson_bytes = converted_path.read_bytes()
+
+        result_lines = 0
+        if result_csv_path.exists():
+            try:
+                with open(result_csv_path, 'r', encoding='utf-8-sig') as rf:
+                    for i, _ in enumerate(rf):
+                        pass
+                    result_lines = i + 1 if result_lines == 0 else result_lines
+            except Exception:
+                pass
+
+        text_preview = ndjson_bytes.decode('utf-8', errors='ignore')
+        lines = text_preview.splitlines()
+        submission_count = sum(1 for l in lines if '"type": "submissions"' in l)
+        problem_count = sum(1 for l in lines if '"type": "problems"' in l)
+        team_count = sum(1 for l in lines if '"type": "teams"' in l)
+
+        if submission_count == 0:
+            detail = (
+                f"生成的 NDJSON 不包含任何提交。请检查上传的 n_sub.csv 是否正确；"
+                f"当前 result.csv 行数: {result_lines}，题目事件数: {problem_count}，队伍事件数: {team_count}。\n"
+                "常见原因：1) 上传的 n_sub.csv 未包含用户ID；2) 比赛时间选择错误； 3) 题目 ID 不存在"
+            )
+            raise RuntimeError(detail)
+
+        # 文件小
+        if len(ndjson_bytes) < 300 and submission_count < 3:
+            raise RuntimeError(
+                f"converted.ndjson 体积过小({len(ndjson_bytes)}字节)，提交数 {submission_count}。"
+                "请核实上传的目录文件是否正确"
+            )
     except Exception as e:
-        # 将 tmp 目录路径也返回便于排查
         abort(400, description=f"转换失败: {e}")
     finally:
         try:
@@ -165,5 +201,4 @@ def convert_endpoint():
 
 
 if __name__ == "__main__":
-    # 本地开发启动：FLASK_ENV=development 可自动重载
     app.run(host="0.0.0.0", port=9999, debug=True)
